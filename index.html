@@ -3,275 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>面向具身智能的端—边—云协同6G语义通信场景验证</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>AIC2026 语义通信机械臂演示</title>
+    <!-- 引入 Chart.js 用于渲染雷达图 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* ====== 全页通用样式 ====== */
-        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
-        body{background:linear-gradient(135deg,#a1c4fd,#c2e9fb,#e0f7fa);color:#333;min-height:100vh}
-        .container{max-width:1800px;margin:0 auto;padding:10px}
-        header{text-align:center;padding:30px 0}
-        h1{font-size:2.5rem;margin-bottom:10px;text-shadow:2px 2px 4px rgba(0,0,0,.3)}
-        .subtitle{font-size:1.2rem;opacity:.9;max-width:800px;margin:0 auto;line-height:1.6}
-        .global-controls{background:rgba(255,255,255,.1);backdrop-filter:blur(10px);border-radius:15px;padding:20px;margin:30px 0;text-align:center}
-        .info-display-row{display:flex;justify-content:space-around;align-items:center;border:2px solid #ccc;border-radius:8px;padding:10px 0;margin:10px 0;background:rgba(255,255,255,.1);color:#000;flex-wrap:wrap}
-        .info-display-item{text-align:center;padding:5px 15px}
-        .info-label{font-weight:bold;font-size:24px;color:#000;margin-right:5px}
-        .info-value{font-size:26px;color:#8B0000;font-weight:600}
+        /* ===== 1. 全局重置与基础排版 ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        .performance-charts{background:rgba(255,255,255,.1);backdrop-filter:blur(10px);border-radius:15px;padding:25px;margin:30px 0;box-shadow:0 10px 30px rgba(0,0,0,.2)}
-        .charts-title{font-size:1.5rem;margin-bottom:20px;color:#fdbb2d;display:flex;align-items:center;gap:10px;justify-content:center}
-
-        /* ====== 实测结果汇总表 ====== */
-        .result-table-wrap{width:100%;overflow-x:auto}
-        .result-table{width:100%;border-collapse:collapse;color:#000;font-size:1.05rem;background:rgba(255,255,255,.6);border-radius:10px;overflow:hidden}
-        .result-table th,.result-table td{border:1px solid #b9c4d6;padding:12px 14px;text-align:center}
-        .result-table thead th{background:#fdbb2d;color:#1a1a2e;font-weight:700;font-size:1.1rem}
-        .result-table tbody tr:nth-child(even){background:rgba(255,255,255,.35)}
-        .result-table .placeholder-row td{color:#9aa3b2;font-style:italic;height:60px}
-
-        .architecture-image{text-align:center;margin:25px 0;background:rgba(255,255,255,.08);backdrop-filter:blur(10px);border-radius:12px;padding:25px;border:1px solid rgba(253,187,45,.3);box-shadow:0 8px 25px rgba(0,0,0,.2)}
-        .architecture-image img{max-width:90%;max-height:520px;object-fit:contain;border-radius:8px;border:1px solid rgba(255,255,255,.2);transition:transform .3s}
-        .architecture-image img:hover{transform:scale(1.02)}
-        .image-caption{margin-top:15px;color:#fdbb2d;font-weight:500;font-size:1rem}
-
-        .video-container{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:30px}
-        .video-panel{background:rgba(255,255,255,.1);backdrop-filter:blur(10px);border-radius:15px;padding:15px;box-shadow:0 10px 30px rgba(0,0,0,.2);display:flex;flex-direction:column;min-width:0}
-        .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.2)}
-        .panel-title{font-size:1.1rem;display:flex;align-items:center;gap:8px}
-        .panel-title i{color:#fdbb2d}
-        .display-area{width:100%;height:200px;border:2px solid rgba(255,255,255,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);overflow:hidden;margin-bottom:12px;color:#fff;font-size:.9rem}
-        .display-area img{max-width:100%;max-height:100%;object-fit:contain}
-        .controls{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;justify-content:center}
-        .info-panel{background:rgba(0,0,0,.2);padding:10px;border-radius:8px;margin-top:8px;font-size:.8rem}
-        .info-item{display:flex;justify-content:space-between;margin-bottom:4px}
-        .status-indicator{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
-        .status-playing{background:#4CAF50;animation:pulse 1s infinite}
-        .status-paused{background:#ff9800}
-        .status-stopped{background:#f44336}
-        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-        footer{text-align:center;margin-top:50px;padding:20px;opacity:.7;font-size:.9rem}
-        .btn{background:#fdbb2d;color:#1a1a2e;border:none;padding:8px 16px;border-radius:50px;font-weight:bold;cursor:pointer;transition:all .3s;display:inline-flex;align-items:center;gap:6px;margin:4px;font-size:.85rem}
-        .btn:hover{background:#ffcc44;transform:scale(1.05)}
-        .btn-global{background:#4CAF50;padding:10px 20px;font-size:.95rem}
-        .btn-global:hover{background:#66BB6A}
-        .btn-stop{background:#f44336}
-        .btn-stop:hover{background:#ef5350}
-        @media(max-width:1400px){.video-container{grid-template-columns:repeat(2,1fr)}}
-        @media(max-width:768px){.video-container{grid-template-columns:1fr}h1{font-size:2rem}}
-
-        .abstract{
-            background:rgba(255,255,255,.08);
-            padding:20px;
-            border-radius:10px;
-            line-height:1.9;
-            border-left:4px solid #fdbb2d;
-            color:#000;
-            font-size:1.15rem;
-            font-weight:500;
-            text-align: justify;
-            text-justify: inter-ideograph;
-            word-break: break-word;
+        body {
+            font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+            background: #ffffff;
+            color: #333333;
+            line-height: 1.8;
         }
-        .abstract strong{color:#000;font-weight:700;font-size:1.15rem}
-        .abstract p{margin:0 0 12px 0;text-indent:2em}
-        .abstract p:last-child{margin-bottom:0}
 
-        .progress-bar-container{width:100%;height:8px;background:rgba(0,0,0,.5);border-radius:4px;margin-bottom:10px;overflow:hidden}
-        .progress-bar{height:100%;width:0;background:linear-gradient(90deg,#fdbb2d,#ffcc44);transition:width 0.1s linear}
+        /* ===== 2. 顶部横幅 ===== */
+        .hero {
+            background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
+            text-align: center;
+            padding: 80px 20px 60px;
+            border-bottom: 3px solid #00bfff;
+        }
+        .hero h1 {
+            font-size: 2.2em;
+            color: #0077cc;
+            margin-bottom: 10px;
+        }
+        .hero .subtitle {
+            font-size: 1.2em;
+            color: #555555;
+        }
+
+        /* ===== 3. 核心指标行 ===== */
+        .metrics {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            padding: 30px 20px;
+            background: #fafafa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .metric-item { text-align: center; }
+        .metric-item .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #00bfff;
+        }
+        .metric-item .label {
+            font-size: 0.95em;
+            color: #666666;
+            margin-top: 4px;
+        }
+
+        /* ===== 4. 内容区块通用 ===== */
+        .section {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .section-title {
+            font-size: 1.6em;
+            color: #0077cc;
+            border-left: 4px solid #00bfff;
+            padding-left: 14px;
+            margin-bottom: 20px;
+        }
+
+        /* ===== 5. 作品简介 ===== */
+        .intro-text {
+            text-align: justify;
+            text-indent: 2em;
+            font-size: 1.05em;
+            color: #444444;
+        }
+        .intro-text p { margin-bottom: 16px; }
+
+        /* ===== 6. 架构图 ===== */
+        .arch-image {
+            width: 100%;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .arch-image img {
+            max-width: 100%;
+            border: 1px solid #dddddd;
+            border-radius: 6px;
+        }
+        .arch-image .placeholder {
+            display: inline-block;
+            padding: 60px 40px;
+            background: #f5f5f5;
+            border: 2px dashed #cccccc;
+            border-radius: 8px;
+            color: #999999;
+            font-size: 1.1em;
+        }
+
+        /* ===== 7. 雷达对比图区域 ===== */
+        .radar-section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .radar-container {
+            position: relative;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 600px;
+            height: 500px;
+        }
+        .radar-note {
+            margin-top: 20px;
+            font-size: 0.85em;
+            color: #999999;
+            text-align: left;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ===== 8. 演示视频与蓝色控制栏 ===== */
+        .video-section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .video-section video {
+            width: 100%;
+            max-width: 800px;
+            border-radius: 8px;
+            border: 1px solid #dddddd;
+            outline: none;
+        }
+        .video-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .video-controls button {
+            background: #00bfff;
+            color: #ffffff;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 1.2em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .video-controls button:hover { background: #0099dd; }
+        
+        .video-controls .progress-bar {
+            width: 300px;
+            height: 6px;
+            background: #dddddd;
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+        }
+        .video-controls .progress-bar .progress {
+            height: 100%;
+            background: #00bfff;
+            border-radius: 3px;
+            width: 0%;
+        }
+        .video-controls .time {
+            font-size: 0.9em;
+            color: #666666;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        /* ===== 9. 页脚 ===== */
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #aaaaaa;
+            font-size: 0.9em;
+            border-top: 1px solid #eeeeee;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>面向具身智能的端—边—云协同6G语义通信场景验证</h1>
-            <p class="subtitle">全球校园人工智能算法精英大赛 · 智能通信</p>
-        </header>
 
-        <div class="global-controls">
-            <div class="info-display-row">
-                <div class="info-display-item"><span class="info-label">上行带宽:</span><span class="info-value">50 kbps</span></div>
-                <div class="info-display-item"><span class="info-label">相较 H.264 节省带宽:</span><span class="info-value">&gt;90%</span></div>
-            </div>
+<!-- ===== 顶部横幅 ===== -->
+<div class="hero">
+    <h1>面向具身智能的端—边—云协同6G语义通信场景验证</h1>
+    <p class="subtitle">AIC2026 语义通信赛道演示</p>
+</div>
 
-            <!-- ========== 作品简介 ========== -->
-            <div class="abstract" style="margin-bottom:20px;">
-              <strong>作品简介：</strong>
-              <p>本作品面向机械臂辅助试管收纳场景，针对现有机械臂云端视觉-语言-动作模型推理方案存在的低带宽下动作卡顿、任务准确率低、模型跨场景环境迁移能力弱等问题，开展面向具身智能的端—边—云协同6G语义通信方法研究，并以机械臂试管跨架转移任务验证6G典型应用场景。</p>
-              <p>具体而言，本作品构建了"端侧视频采集—边缘语义压缩—云端视觉-语言-动作（Vision-Language-Action, VLA）模型推理—动作回传执行"的端到端闭环。首先，端侧机械臂与边缘设备间采用网线直连，汇聚腕部与夹爪视频及机械臂状态数据，以降低短距接入环节的无线开销。其次，边缘设备基于6G关键技术之一的语义通信，部署轻量化视频语义传输模型，对汇聚后的视频进行实时高效压缩。最后，边缘设备与云端间采用无线传输，将压缩视频码流按UDP协议封装后经WiFi上传至云端服务器，输入云端部署的VLA模型生成下一步动作并回传执行，从而在低带宽条件下保障机械臂动作流畅与任务可靠。</p>
-              <p>经实验验证，在低至50kbps的带宽条件下，所设计语义传输方案可支撑机械臂流畅工作，相较H.264在上行视频传输环节节省超90%带宽。该成果可支撑远程具身遥操作、多机协同作业等具身智能场景，为6G赋能具身智能产业提供可行思路。</p>
-            </div>
-
-            <!-- ========== 架构图（图片稍后替换） ========== -->
-            <div class="architecture-image">
-                <!-- 请将下方 src 替换为你的架构图文件名（与 index.html 放在同一目录），例如 architecture.png -->
-                <img src="architecture.png" alt="面向具身智能的端—边—云协同6G语义通信架构及业务流程图" onerror="this.onerror=null;this.parentNode.querySelector('.arch-tip').style.display='flex';this.style.display='none';">
-                <div class="arch-tip" style="display:none;align-items:center;justify-content:center;height:200px;color:#fff;font-size:1rem;">【 架构图待上传：请将 architecture.png 放在本页面同目录 】</div>
-                <div class="image-caption">面向具身智能的端—边—云协同6G语义通信架构及业务流程图</div>
-            </div>
-            <div class="controls">
-                <button class="btn btn-global" id="globalPlay"><i class="fas fa-play"></i> 开始</button>
-                <button class="btn btn-global" id="globalPause"><i class="fas fa-pause"></i> 暂停</button>
-                <button class="btn btn-global btn-stop" id="globalStop"><i class="fas fa-stop"></i> 停止</button>
-            </div>
-        </div>
-
-        <!-- ========== 实测结果汇总表（表格内容稍后填写） ========== -->
-        <div class="performance-charts">
-            <div class="charts-title"><i class="fas fa-table"></i> 实测结果汇总表</div>
-            <div class="result-table-wrap">
-                <table class="result-table">
-                    <thead>
-                        <tr>
-                            <th>方案</th>
-                            <th>上行带宽 (kbps)</th>
-                            <th>带宽节省</th>
-                            <th>任务成功率</th>
-                            <th>端到端时延 (ms)</th>
-                            <th>备注</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="placeholder-row"><td colspan="6">（实测数据待补充）</td></tr>
-                        <!-- 在此按行填入实测数据，每行格式示例：
-                        <tr><td>H.264</td><td>…</td><td>—</td><td>…</td><td>…</td><td>…</td></tr>
-                        <tr><td>所提语义传输</td><td>…</td><td>…</td><td>…</td><td>…</td><td>…</td></tr>
-                        -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- ========== 场景演示（保留原四路交互框架，帧路径占位待填） ========== -->
-        <div class="video-container">
-            <!-- ====== 端侧原始视频 ====== -->
-            <div class="video-panel">
-                <div class="panel-header"><h3 class="panel-title"><i class="fas fa-camera"></i> 端侧原始视频</h3><span class="status-indicator status-stopped" id="st4"></span></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font-size:15px;color:#000;">加载进度</span><span style="font-size:15px;color:#fdbb2d;" id="load-text4">0%</span></div>
-                <div class="progress-bar-container" style="margin-bottom:5px;"><div class="progress-bar" id="lb4" title="加载进度"></div></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font-size:15px;color:#000;">播放进度</span><span style="font-size:15px;color:#fdbb2d;" id="play-text4">0%</span></div>
-                <div class="progress-bar-container"><div class="progress-bar" id="pb4" title="播放进度"></div></div>
-                <div class="display-area" id="da4">帧序列待补充</div>
-                <div class="info-panel"><div class="info-item"><span>帧率:</span><span id="fps4">25 FPS</span></div><div class="info-item"><span>状态:</span><span id="ps4">已停止</span></div></div>
-            </div>
-
-            <!-- ====== H.264 基线 ====== -->
-            <div class="video-panel">
-                <div class="panel-header"><h3 class="panel-title"><i class="fas fa-film"></i> H.264 基线</h3><span class="status-indicator status-stopped" id="st1"></span></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font-size:15px;color:#000;">加载进度</span><span style="font-size:15px;color:#fdbb2d;" id="load-text1">0%</span></div>
-                <div class="progress-bar-container" style="margin-bottom:5px;"><div class="progress-bar" id="lb1" title="加载进度"></div></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font-size:15px;color:#000;">播放进度</span><span style="font-size:15px;color:#fdbb2d;" id="play-text1">0%</span></div>
-                <div class="progress-bar-container"><div class="progress-bar" id="pb1" title="播放进度"></div></div>
-                <div class="display-area" id="da1">帧序列待补充</div>
-                <div class="info-panel"><div class="info-item"><span>帧率:</span><span id="fps1">25 FPS</span></div><div class="info-item"><span>状态:</span><span id="ps1">已停止</span></div></div>
-            </div>
-
-            <!-- ====== 边缘语义压缩 ====== -->
-            <div class="video-panel">
-                <div class="panel-header"><h3 class="panel-title"><i class="fas fa-microchip"></i> 边缘语义压缩</h3><span class="status-indicator status-stopped" id="st2"></span></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font-size:15px;color:#000;">加载进度</span><span style="font-size:15px;color:#fdbb2d;" id="load-text2">0%</span></div>
-                <div class="progress-bar-container" style="margin-bottom:5px;"><div class="progress-bar" id="lb2" title="加载进度"></div></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font-size:15px;color:#000;">播放进度</span><span style="font-size:15px;color:#fdbb2d;" id="play-text2">0%</span></div>
-                <div class="progress-bar-container"><div class="progress-bar" id="pb2" title="播放进度"></div></div>
-                <div class="display-area" id="da2">帧序列待补充</div>
-                <div class="info-panel"><div class="info-item"><span>帧率:</span><span id="fps2">25 FPS</span></div><div class="info-item"><span>状态:</span><span id="ps2">已停止</span></div></div>
-            </div>
-
-            <!-- ====== 端到端方案（所提方法） ====== -->
-            <div class="video-panel">
-                <div class="panel-header"><h3 class="panel-title"><i class="fas fa-robot"></i> 端—边—云协同（所提方法）</h3><span class="status-indicator status-stopped" id="st3"></span></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font-size:15px;color:#000;">加载进度</span><span style="font-size:15px;color:#fdbb2d;" id="load-text3">0%</span></div>
-                <div class="progress-bar-container" style="margin-bottom:5px;"><div class="progress-bar" id="lb3" title="加载进度"></div></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font-size:15px;color:#000;">播放进度</span><span style="font-size:15px;color:#fdbb2d;" id="play-text3">0%</span></div>
-                <div class="progress-bar-container"><div class="progress-bar" id="pb3" title="播放进度"></div></div>
-                <div class="display-area" id="da3">帧序列待补充</div>
-                <div class="info-panel"><div class="info-item"><span>帧率:</span><span id="fps3">25 FPS</span></div><div class="info-item"><span>状态:</span><span id="ps3">已停止</span></div></div>
-            </div>
-        </div>
-
-        <footer><p>面向具身智能的端—边—云协同6G语义通信场景验证</p></footer>
+<!-- ===== 核心指标 ===== -->
+<div class="metrics">
+    <div class="metric-item">
+        <div class="value">50 kbps</div>
+        <div class="label">上行带宽（语义传输）</div>
     </div>
+    <div class="metric-item">
+        <div class="value">&gt;90%</div>
+        <div class="label">相较 H.264 节省带宽</div>
+    </div>
+</div>
 
-    <!-- ====================== 演示区帧序列脚本（帧路径占位，待你补充后生效） ====================== -->
-    <script>
-        /* 帧序列来源。请把每个 folder 指向你仓库里存放对应帧图片的子目录，
-           并把 tpl 改成你帧文件的命名规则；若暂无演示帧，保留为空即可，页面不会报错。 */
-        const repo = ''; // 若帧放在本站相对目录可留空，如 'demo-frames'
+<!-- ===== 作品简介 ===== -->
+<div class="section">
+    <h2 class="section-title">作品简介</h2>
+    <div class="intro-text">
+        <p>本作品面向机械臂辅助试管收纳场景，针对现有机械臂云端视觉-语言-动作模型推理方案存在的低带宽下动作卡顿、任务准确率低、模型跨场景环境迁移能力弱等问题，开展面向具身智能的端—边—云协同6G语义通信方法研究，并以机械臂试管跨架转移任务验证6G典型应用场景。</p>
+        <p>具体而言，本作品构建了"端侧视频采集—边缘语义压缩—云端视觉-语言-动作（Vision-Language-Action, VLA）模型推理—动作回传执行"的端到端闭环。首先，端侧机械臂与边缘设备间采用网线直连，汇聚腕部与夹爪视频及机械臂状态数据，以降低短距接入环节的无线开销。其次，边缘设备基于6G关键技术之一的语义通信，部署轻量化视频语义传输模型，对汇聚后的视频进行实时高效压缩。最后，边缘设备与云端间采用无线传输，将压缩视频码流按UDP协议封装后经WiFi上传至云端服务器，输入云端部署的VLA模型生成下一步动作并回传执行，从而在低带宽条件下保障机械臂动作流畅与任务可靠。</p>
+        <p>经实验验证，在低至50kbps的带宽条件下，所设计语义传输方案可支撑机械臂流畅工作，相较H.264在上行视频传输环节节省超90%带宽。该成果可支撑远程具身遥操作、多机协同作业等具身智能场景，为6G赋能具身智能产业提供可行思路。</p>
+    </div>
+</div>
 
-        const panels = [
-            // { id: 'da4', folder: 'origin-frames',        tpl: i => `img${String(i).padStart(6,'0')}.png`, count: 0, fps: 25, loadBarId: 'lb4' },
-            // { id: 'da1', folder: 'h264-frames',          tpl: i => `frame_${String(i).padStart(4,'0')}.png`, count: 0, fps: 25, loadBarId: 'lb1' },
-            // { id: 'da2', folder: 'edge-semantic-frames', tpl: i => `frame_${String(i).padStart(4,'0')}.png`, count: 0, fps: 25, loadBarId: 'lb2' },
-            // { id: 'da3', folder: 'e2e-frames',           tpl: i => `frame_${String(i).padStart(4,'0')}.png`, count: 0, fps: 25, loadBarId: 'lb3' }
-        ];
+<!-- ===== 架构及业务流程图 ===== -->
+<div class="arch-image">
+    <h2 class="section-title">面向具身智能的端—边—云协同6G语义通信架构及业务流程图</h2>
+    <img src="architecture.png" alt="系统架构图" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+    <div class="placeholder" style="display:none;">📌 请将架构图命名为 <b>architecture.png</b>，放在与 index.html 同级目录下</div>
+</div>
 
-        panels.forEach(p => {
-            const box = document.getElementById(p.id);
-            const loadBar = document.getElementById(p.loadBarId);
-            let loadedFrames = 0;
-            box.textContent = '';
-            for(let i=1; i<=p.count; i++){
-                const src = `${repo}/${p.folder}/${p.tpl(i)}`;
-                const img = document.createElement('img');
-                img.id = `${p.id}-frame-${i}`;
-                img.src = src;
-                img.style.maxWidth = '100%';
-                img.style.maxHeight = '100%';
-                img.style.objectFit = 'contain';
-                img.style.display = (i === 1 ? 'block' : 'none');
-                img.onload = () => {
-                    loadedFrames++;
-                    if(loadBar) loadBar.style.width = `${(loadedFrames / p.count) * 100}%`;
-                };
-                img.onerror = () => console.error(`Error loading frame: ${src}`);
-                box.appendChild(img);
-            }
-        });
+<!-- ===== 实测结果雷达图（五边形） ===== -->
+<div class="radar-section">
+    <h2 class="section-title">实测结果多维对比</h2>
+    
+    <!-- 雷达图画布 -->
+    <div class="radar-container">
+        <canvas id="performanceRadar"></canvas>
+    </div>
+    
+    <p class="radar-note">注：测试任务为机械臂试管跨架转移，上行链路限速 50 kbps，每组 20 次试验取均值。雷达图数值已进行归一化处理以便对比。</p>
+</div>
 
-        function flipper(prefix, total, interval, statusEl, playProgressEl){
-            let idx = 0, t = null;
-            const show = k=>{
-                const frames = document.querySelectorAll(`[id^="${prefix}-frame-"]`);
-                const target = document.getElementById(`${prefix}-frame-${k+1}`);
-                const progress = ((k + 1) / total) * 100;
-                if(playProgressEl) playProgressEl.style.width = `${progress}%`;
-                requestAnimationFrame(() => {
-                    frames.forEach(el => el.style.display = 'none');
-                    if(target) target.style.display = 'block';
-                });
-            };
-            if(total > 0) show(0);
-            return {
-                start(){
-                    if(t || total === 0) return;
-                    if(statusEl){ statusEl.textContent='播放中'; statusEl.previousElementSibling.className='status-indicator status-playing'; }
-                    t = setInterval(() => { idx = (idx + 1) % total; show(idx); }, interval);
+<!-- ===== 演示视频 ===== -->
+<div class="video-section">
+    <h2 class="section-title" style="text-align:left; max-width:800px; margin:0 auto 20px;">演示视频</h2>
+    <video id="demoVideo" src="file-001.mp4" preload="metadata"></video>
+    <div class="video-controls">
+        <button id="btnPlayPause" title="播放/暂停">▶</button>
+        <span class="time" id="timeDisplay">0:00 / 0:00</span>
+        <div class="progress-bar" id="progressBar">
+            <div class="progress" id="progressFill"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 页脚 ===== -->
+<footer>
+    &copy; 2026 RTVST-Demo / AIC2026 语义通信赛道
+</footer>
+
+<!-- ===== 脚本：视频控制与雷达图渲染 ===== -->
+<script>
+    /* ----- 1. 雷达图数据与渲染配置（五边形，已去掉帧率） ----- */
+    const ctx = document.getElementById('performanceRadar').getContext('2d');
+    const myRadarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            // 5个维度的标签
+            labels: [
+                '完整成功率 (%)', 
+                '插放成功率 (%)', 
+                '上行总码率 (Mbit/s)', 
+                '策略调用时延 (ms)', 
+                '任务总耗时 (s)'
+            ],
+            datasets: [
+                {
+                    label: '视频语义模型 (所提方案)',
+                    data: [95.8, 92.0, 0.05, 85.5, 12.5], // 5个数值，对应上面5个维度
+                    backgroundColor: 'rgba(0, 191, 255, 0.2)',
+                    borderColor: '#00bfff',
+                    pointBackgroundColor: '#00bfff',
+                    pointBorderColor: '#ffffff',
+                    pointHoverBackgroundColor: '#0077cc',
+                    pointHoverBorderColor: '#ffffff',
+                    borderWidth: 3
                 },
-                pause(){
-                    clearInterval(t); t = null;
-                    if(statusEl){ statusEl.textContent='已暂停'; statusEl.previousElementSibling.className='status-indicator status-paused'; }
-                },
-                stop(){
-                    clearInterval(t); t = null; idx = 0; if(total > 0) show(0);
-                    if(statusEl){ statusEl.textContent='已停止'; statusEl.previousElementSibling.className='status-indicator status-stopped'; }
+                {
+                    label: 'H.264 基线',
+                    data: [62.5, 58.0, 2.0, 120.0, 28.0], // 5个数值，对应上面5个维度
+                    backgroundColor: 'transparent',
+                    borderColor: '#333333',
+                    pointBackgroundColor: '#333333',
+                    pointBorderColor: '#ffffff',
+                    pointHoverBackgroundColor: '#000000',
+                    pointHoverBorderColor: '#ffffff',
+                    borderWidth: 2
                 }
-            };
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    angleLines: { color: '#e8e8e8' },
+                    grid: { color: '#e8e8e8' },
+                    pointLabels: {
+                        color: '#333333',
+                        font: { size: 14, family: 'Microsoft YaHei' }
+                    },
+                    ticks: {
+                        display: false,
+                        backdropColor: 'transparent'
+                    },
+                    suggestedMin: 0
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: { size: 14 },
+                        color: '#555555',
+                        usePointStyle: true
+                    }
+                }
+            }
         }
+    });
 
-        const players = panels.map((p)=>{
-            let idSuffix;
-            if(p.id === 'da4') idSuffix = 4;
-            else if(p.id === 'da1') idSuffix = 1;
-            else if(p.id === 'da2') idSuffix = 2;
-            else if(p.id === 'da3') idSuffix = 3;
-            return flipper(p.id, p.count, 1000/p.fps,
-                document.getElementById(`ps${idSuffix}`),
-                document.getElementById(`pb${idSuffix}`));
-        });
+    /* ----- 2. 视频播放器控制逻辑 ----- */
+    const video = document.getElementById('demoVideo');
+    const btn = document.getElementById('btnPlayPause');
+    const bar = document.getElementById('progressBar');
+    const fill = document.getElementById('progressFill');
+    const timeDisplay = document.getElementById('timeDisplay');
 
-        document.getElementById('globalPlay').addEventListener('click',()=>players.forEach(p=>p.start()));
-        document.getElementById('globalPause').addEventListener('click',()=>players.forEach(p=>p.pause()));
-        document.getElementById('globalStop').addEventListener('click',()=>players.forEach(p=>p.stop()));
-    </script>
+    btn.addEventListener('click', () => {
+        if (video.paused) {
+            video.play();
+            btn.textContent = '⏸';
+        } else {
+            video.pause();
+            btn.textContent = '▶';
+        }
+    });
+
+    video.addEventListener('timeupdate', () => {
+        const pct = (video.currentTime / video.duration) * 100;
+        fill.style.width = pct + '%';
+        timeDisplay.textContent = fmt(video.currentTime) + ' / ' + fmt(video.duration);
+    });
+
+    bar.addEventListener('click', (e) => {
+        const rect = bar.getBoundingClientRect();
+        const ratio = (e.clientX - rect.left) / rect.width;
+        video.currentTime = ratio * video.duration;
+    });
+
+    function fmt(s) {
+        if (isNaN(s)) return '0:00';
+        const m = Math.floor(s / 60);
+        const sec = Math.floor(s % 60).toString().padStart(2, '0');
+        return m + ':' + sec;
+    }
+</script>
+
 </body>
 </html>
