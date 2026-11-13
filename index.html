@@ -135,7 +135,7 @@
         }
         .video-section video {
             width: 100%;
-            max-width: 800px;
+            max-width: 400px;
             border-radius: 8px;
             border: 1px solid #dddddd;
             outline: none;
@@ -162,7 +162,7 @@
             transition: background 0.2s;
         }
         .video-controls button:hover { background: #0099dd; }
-        
+
         .video-controls .progress-bar {
             width: 300px;
             height: 6px;
@@ -205,11 +205,11 @@
 <!-- ===== 核心指标 ===== -->
 <div class="metrics">
     <div class="metric-item">
-        <div class="value">50 kbps</div>
+        <div class="value">40kbps</div>
         <div class="label">上行带宽（语义传输）</div>
     </div>
     <div class="metric-item">
-        <div class="value">&gt;90%</div>
+        <div class="value">&gt;78%</div>
         <div class="label">相较 H.264 节省带宽</div>
     </div>
 </div>
@@ -218,9 +218,9 @@
 <div class="section">
     <h2 class="section-title">作品简介</h2>
     <div class="intro-text">
-        <p>本作品面向机械臂辅助试管收纳场景，针对现有机械臂云端视觉-语言-动作模型推理方案存在的低带宽下动作卡顿、任务准确率低、模型跨场景环境迁移能力弱等问题，开展面向具身智能的端—边—云协同6G语义通信方法研究，并以机械臂试管跨架转移任务验证6G典型应用场景。</p>
-        <p>具体而言，本作品构建了"端侧视频采集—边缘语义压缩—云端视觉-语言-动作（Vision-Language-Action, VLA）模型推理—动作回传执行"的端到端闭环。首先，端侧机械臂与边缘设备间采用网线直连，汇聚腕部与夹爪视频及机械臂状态数据，以降低短距接入环节的无线开销。其次，边缘设备基于6G关键技术之一的语义通信，部署轻量化视频语义传输模型，对汇聚后的视频进行实时高效压缩。最后，边缘设备与云端间采用无线传输，将压缩视频码流按UDP协议封装后经WiFi上传至云端服务器，输入云端部署的VLA模型生成下一步动作并回传执行，从而在低带宽条件下保障机械臂动作流畅与任务可靠。</p>
-        <p>经实验验证，在低至50kbps的带宽条件下，所设计语义传输方案可支撑机械臂流畅工作，相较H.264在上行视频传输环节节省超90%带宽。该成果可支撑远程具身遥操作、多机协同作业等具身智能场景，为6G赋能具身智能产业提供可行思路。</p>
+        <p>本作品面向未来生命科学智能实验室的具身智能自主作业需求，针对现有云端视觉—语言—动作（VLA）模型驱动机器人系统在无线通信下面临的传输带宽受限、动作响应滞后及任务可靠性不足等问题，提出一种6G语义通信赋能的端—边—云协同具身智能方案，并以生物医药实验中的试管跨架精准转移任务开展典型场景验证。</p>
+        <p>本作品构建“端侧多模态感知—边缘任务导向语义传输—云端智能决策—动作指令回传执行”的端到端闭环系统。端侧机械臂通过视觉传感器采集环境信息并同步获取机械臂状态数据，实现多模态感知信息实时采集与汇聚；边缘侧引入6G语义通信技术，部署轻量化视频语义编码模型，高效传输任务关键语义信息，降低无线传输开销，保障云端决策所需关键视觉信息；云端利用VLA模型融合视觉信息、机械臂状态与任务指令，生成动作序列并实时回传至端侧机械臂执行，形成感知、通信、决策与执行的动态闭环，实现限带宽条件下具身智能任务的连续、精准与可靠操作。</p>
+        <p>实验结果表明，在控制解码帧率和解码画质相同的条件下，语义通信方案相较传统H.264方案，上行总码率降低超78%，验证了6G语义通信对云端具身智能系统传输效率的提升效果，可进一步拓展至实验样本智能处理及多机器人协同作业等场景，为6G与具身智能深度融合及未来智能实验室建设提供技术参考。</p>
     </div>
 </div>
 
@@ -231,16 +231,16 @@
     <div class="placeholder" style="display:none;">📌 请将架构图命名为 <b>architecture.png</b>，放在与 index.html 同级目录下</div>
 </div>
 
-<!-- ===== 实测结果雷达图（五边形） ===== -->
+<!-- ===== 实测结果雷达图（四边形） ===== -->
 <div class="radar-section">
     <h2 class="section-title">实测结果多维对比</h2>
-    
+
     <!-- 雷达图画布 -->
     <div class="radar-container">
         <canvas id="performanceRadar"></canvas>
     </div>
-    
-    <p class="radar-note">注：测试任务为机械臂试管跨架转移，上行链路限速 50 kbps，每组 20 次试验取均值。雷达图数值已进行归一化处理以便对比。</p>
+
+    <p class="radar-note">注：测试任务为面向未来生命科学智能实验室的具身智能自主作业，控制解码帧率为10fps，解码画质相同。雷达图数值已进行归一化处理以便对比。</p>
 </div>
 
 <!-- ===== 演示视频 ===== -->
@@ -263,23 +263,22 @@
 
 <!-- ===== 脚本：视频控制与雷达图渲染 ===== -->
 <script>
-    /* ----- 1. 雷达图数据与渲染配置（五边形，已去掉帧率） ----- */
+    /* ----- 1. 雷达图数据与渲染配置（四边形，已去掉任务总耗时） ----- */
     const ctx = document.getElementById('performanceRadar').getContext('2d');
     const myRadarChart = new Chart(ctx, {
         type: 'radar',
         data: {
-            // 5个维度的标签
+            // 4个维度的标签
             labels: [
                 '完整成功率 (%)', 
                 '插放成功率 (%)', 
                 '上行总码率 (Mbit/s)', 
-                '策略调用时延 (ms)', 
-                '任务总耗时 (s)'
+                '策略调用时延 (ms)'
             ],
             datasets: [
                 {
                     label: '视频语义模型 (所提方案)',
-                    data: [95.8, 92.0, 0.05, 85.5, 12.5], // 5个数值，对应上面5个维度
+                    data: [85, 95, 40.06, 144.18], // 4个数值，对应上面4个维度
                     backgroundColor: 'rgba(0, 191, 255, 0.2)',
                     borderColor: '#00bfff',
                     pointBackgroundColor: '#00bfff',
@@ -290,7 +289,7 @@
                 },
                 {
                     label: 'H.264 基线',
-                    data: [62.5, 58.0, 2.0, 120.0, 28.0], // 5个数值，对应上面5个维度
+                    data: [80, 95, 184.09, 84.45], // 4个数值，对应上面4个维度
                     backgroundColor: 'transparent',
                     borderColor: '#333333',
                     pointBackgroundColor: '#333333',
